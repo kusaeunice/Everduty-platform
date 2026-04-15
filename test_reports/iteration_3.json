@@ -1,0 +1,85 @@
+{
+  "summary": "Comprehensive testing of new Referral Programme and Training Academy features completed. Backend API tests: 27/27 passed (100%). Frontend UI tests: All critical flows verified for Worker, Employer, and Admin roles. Bug fix /api/auth/me returning 401 confirmed. Referral and Academy features fully functional.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "passed_tests": [
+    "Bug fix: /api/auth/me returns 401 (not 403) when no token provided",
+    "Backend: GET /api/referral/code returns referral code (ED-XXXX format)",
+    "Backend: GET /api/referral/stats returns tier info (tier, total_referrals, bonus stats)",
+    "Backend: GET /api/referral/history returns referral list",
+    "Backend: GET /api/admin/referrals returns platform-wide referral data (total_count, total_bonus_liability)",
+    "Backend: GET /api/academy/courses returns 32+ seeded courses",
+    "Backend: GET /api/academy/courses with category/level filters working",
+    "Backend: GET /api/academy/courses/{id} returns course detail",
+    "Backend: GET /api/academy/categories returns category list",
+    "Backend: POST /api/academy/courses/{id}/enroll enrolls user successfully",
+    "Backend: GET /api/academy/my-courses returns user enrollments",
+    "Backend: POST /api/academy/courses/{id}/complete issues certificate",
+    "Backend: GET /api/academy/certificates returns user certificates",
+    "Backend: GET /api/academy/subscription returns subscription plans (monthly £29.99, annual £249.99)",
+    "Backend: POST /api/academy/subscription creates subscription",
+    "Backend: GET /api/admin/academy returns admin stats (total_courses, total_enrollments, certificates_issued)",
+    "Backend: POST /api/academy/courses allows employer to create courses (pending_review status)",
+    "Backend: GET /api/academy/my-created-courses returns employer's created courses",
+    "Backend: Role-based access control working (403 for unauthorized admin endpoints)",
+    "Frontend Worker: Login functional (worker@email.com / worker123)",
+    "Frontend Worker: Referral view displays referral code (ED-JAME9CCA), tier progress, stats",
+    "Frontend Worker: Academy Course Catalog with search and filters (category, level)",
+    "Frontend Worker: My Courses tab showing enrolled/completed courses with progress",
+    "Frontend Worker: Certificates tab showing issued certificates with status",
+    "Frontend Worker: Subscription tab showing plans with Current Plan indicator",
+    "Frontend Employer: Login functional (employer@careplus.com / employer123)",
+    "Frontend Employer: Referral view with code (ED-SARA3653)",
+    "Frontend Employer: Academy Course Catalog browsing",
+    "Frontend Employer: My Courses manage tab with Create Course button",
+    "Frontend Employer: Created courses show PENDING_REVIEW status",
+    "Frontend Admin: Login functional (admin@everduty.com / admin123)",
+    "Frontend Admin: Referral Platform Overview with Total Referrals, Total Bonus Liability, Active Referrers",
+    "Frontend Admin: Academy Overview tab with stats (34 courses, 3 enrollments, 2 completions, 2 certificates)",
+    "Frontend Admin: All Courses table with course status management",
+    "Sidebar Navigation: Referrals and Academy links visible for worker, employer, admin roles"
+  ],
+
+  "test_report_links": [
+    "/app/backend/tests/test_referral_academy.py",
+    "/app/test_reports/pytest/pytest_results_referral_academy.xml"
+  ],
+
+  "action_items": [],
+
+  "critical_code_review_comments": [],
+
+  "updated_files": [
+    "/app/backend/tests/test_referral_academy.py"
+  ],
+
+  "success_rate": {
+    "backend": "100% (27/27 tests passed)",
+    "frontend": "100% (All critical flows verified)",
+    "overall": "100%"
+  },
+
+  "test_credentials": {
+    "worker": "worker@email.com / worker123",
+    "employer": "employer@careplus.com / employer123",
+    "admin": "admin@everduty.com / admin123"
+  },
+
+  "seed_data_creation": "None - used existing seeded data (32 academy courses, test users with referral codes)",
+
+  "retest_needed": false,
+
+  "should_main_agent_self_test": false,
+
+  "context_for_next_testing_agent": "Referral and Academy features are fully functional. 34 courses in academy (32 seeded + 2 employer-created PENDING_REVIEW). Worker (James Thompson) has referral code ED-JAME9CCA, 3 enrolled courses (2 completed with certificates), active monthly subscription. Employer (Sarah Mitchell) has referral code ED-SARA3653 and 2 created courses. Sidebar has duplicate nav elements for mobile/desktop - use .all() and is_visible() to find desktop version. Auth bug fix verified - /api/auth/me returns 401 when no token."
+}

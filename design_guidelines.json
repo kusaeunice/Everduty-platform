@@ -1,0 +1,136 @@
+{
+  "project_name": "EverDuty Flex Staffing Solutions",
+  "design_philosophy": {
+    "identity": "The Executive Industrial",
+    "core_principles": [
+      "Authority through Contrast: Deep Black vs. Metallic Gold.",
+      "Industrial Precision: Dense information, sharp lines, no fluff.",
+      "Trust & Compliance: Clean whitespace, clear status indicators.",
+      "Mobile Utility: The Worker App is a tool, not a brochure. Big buttons, clear text."
+    ],
+    "mood": "Premium, Reliable, Efficient, Corporate.",
+    "theme_strategy": "Light Mode dominant for trust/readability. Dark Mode optional for Worker App (night shifts)."
+  },
+  "typography": {
+    "font_family_heading": "Oswald, sans-serif",
+    "font_family_body": "Plus Jakarta Sans, sans-serif",
+    "heading_styles": {
+      "h1": "text-4xl md:text-5xl font-bold tracking-tight uppercase text-primary",
+      "h2": "text-3xl font-semibold tracking-tight text-primary",
+      "h3": "text-xl font-medium tracking-wide text-primary/80 uppercase"
+    },
+    "body_styles": {
+      "base": "text-base leading-relaxed text-slate-600",
+      "small": "text-sm leading-snug text-slate-500",
+      "label": "text-xs font-bold tracking-wider uppercase text-slate-400"
+    }
+  },
+  "colors": {
+    "palette": {
+      "primary": "#0F172A",
+      "primary_foreground": "#FFFFFF",
+      "secondary": "#F1F5F9",
+      "secondary_foreground": "#0F172A",
+      "accent": "#C5A059",
+      "accent_foreground": "#FFFFFF",
+      "background": "#F8FAFC",
+      "surface": "#FFFFFF",
+      "muted": "#E2E8F0",
+      "border": "#E2E8F0",
+      "success": "#10B981",
+      "warning": "#F59E0B",
+      "error": "#EF4444"
+    },
+    "usage_rules": [
+      "Primary (Black/Slate-900) for Sidebar, Headings, and Primary Buttons.",
+      "Accent (Gold #C5A059) for Active States, Highlights, and Top-Border of Cards.",
+      "Background (Slate-50) for the main dashboard canvas.",
+      "Surface (White) for Cards and Containers.",
+      "NEVER use Gold for text on White background (Contrast violation). Use Gold for borders/icons or text on Black."
+    ]
+  },
+  "layout": {
+    "grid_system": "Bento Grid (CSS Grid)",
+    "container_styles": {
+      "dashboard_card": "bg-white border-t-4 border-accent shadow-sm rounded-sm p-6 hover:shadow-md transition-shadow duration-200",
+      "marketing_section": "py-20 px-4 md:px-8 max-w-7xl mx-auto",
+      "sidebar": "bg-primary text-white w-64 h-screen fixed left-0 top-0 overflow-y-auto hidden md:block"
+    },
+    "spacing": {
+      "section_gap": "gap-8 md:gap-12",
+      "component_gap": "gap-4",
+      "internal_padding": "p-6"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-white hover:bg-primary/90 rounded-sm uppercase tracking-wider font-bold px-6 py-3 shadow-md border-b-2 border-accent",
+      "secondary": "bg-white text-primary border border-slate-200 hover:bg-slate-50 rounded-sm uppercase tracking-wider font-medium px-6 py-3",
+      "accent": "bg-accent text-white hover:bg-accent/90 rounded-sm font-bold uppercase tracking-wider"
+    },
+    "inputs": {
+      "default": "bg-white border-slate-300 focus:border-accent focus:ring-accent rounded-sm h-12"
+    },
+    "cards": {
+      "default": "bg-white border border-slate-100 shadow-sm rounded-sm overflow-hidden",
+      "interactive": "bg-white border border-slate-100 shadow-sm hover:border-accent/50 hover:shadow-md transition-all cursor-pointer rounded-sm"
+    },
+    "badges": {
+      "success": "bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-xs font-bold uppercase",
+      "warning": "bg-amber-100 text-amber-800 rounded-full px-2 py-0.5 text-xs font-bold uppercase",
+      "error": "bg-red-100 text-red-800 rounded-full px-2 py-0.5 text-xs font-bold uppercase",
+      "neutral": "bg-slate-100 text-slate-800 rounded-full px-2 py-0.5 text-xs font-bold uppercase"
+    }
+  },
+  "visual_enhancers": {
+    "shadows": {
+      "card": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+      "floating": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)"
+    },
+    "borders": {
+      "gold_accent": "border-t-4 border-accent",
+      "subtle": "border border-slate-200"
+    },
+    "textures": "Use subtle noise texture on the dark sidebar to give it a 'premium paper' feel if possible."
+  },
+  "media": {
+    "image_urls": {
+      "healthcare_worker": "https://images.unsplash.com/photo-1659353888906-adb3e0041693?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MDZ8MHwxfHNlYXJjaHw0fHxudXJzZSUyMGRvY3RvciUyMGhlYWx0aGNhcmUlMjB3b3JrZXIlMjBwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdHxlbnwwfHx8fDE3NzM0NzgxMjB8MA&ixlib=rb-4.1.0&q=85",
+      "warehouse_worker": "https://images.unsplash.com/photo-1677334145746-8cfe9ca6a26a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzF8MHwxfHNlYXJjaHwyfHx3YXJlaG91c2UlMjB3b3JrZXIlMjBzYWZldHklMjB2ZXN0JTIwaW5kdXN0cmlhbCUyMHBvcnRyYWl0fGVufDB8fHx8MTc3MzQ3ODEyOXww&ixlib=rb-4.1.0&q=85",
+      "office_worker_placeholder": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=1000",
+      "industrial_background": "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&q=80&w=1000",
+      "logo_placeholder": "https://via.placeholder.com/150x50?text=EverDuty+Logo"
+    },
+    "icons": "Use 'lucide-react' for all UI icons. Use 'Square' variants where possible to match the industrial theme."
+  },
+  "motion": {
+    "transitions": "transition-all duration-200 ease-in-out",
+    "hover_effects": "hover:-translate-y-1 hover:shadow-lg",
+    "loading": "Use a Gold progress bar or spinner."
+  },
+  "accessibility": {
+    "contrast": "Ensure Gold (#C5A059) is ONLY used on Black (#0F172A) or very dark backgrounds. On White, use a darker Gold/Bronze (#B45309) for text.",
+    "focus_states": "focus:ring-2 focus:ring-accent focus:ring-offset-2",
+    "labels": "All inputs must have visible labels or aria-labels."
+  },
+  "instructions_to_main_agent": [
+    "1. Setup Tailwind Colors: Update tailwind.config.js with the 'palette' defined above.",
+    "2. Font Setup: Import 'Oswald' and 'Plus Jakarta Sans' from Google Fonts in index.css.",
+    "3. Layout: Build the 'Worker App' as a mobile-first PWA (Progressive Web App style) - Bottom Navigation for mobile, Sidebar for Desktop.",
+    "4. Components: Override Shadcn defaults to match the 'Square/Sharp' aesthetic. Remove rounded-xl, use rounded-sm.",
+    "5. Dashboard: Use the 'Bento Grid' for the Employer/Admin dashboard overview.",
+    "6. Tables: Use 'Compact' density for Shift Rosters. Add 'Sticky Header' for long lists."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. Avoid this.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
+    "Don't make generic centered layouts. Create depth through layered design elements.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur) sparingly, mainly for mobile nav or modals.",
+    "Every interaction needs micro-animations - hover states, transitions.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Component Reuse: Prioritize using pre-existing components from src/components/ui.",
+    "Export Conventions: Components MUST use named exports. Pages MUST use default exports.",
+    "Toasts: Use 'sonner' for toasts.",
+    "All interactive elements MUST include a 'data-testid' attribute."
+  ]
+}
