@@ -1,44 +1,41 @@
-// src/lib/api.js
+import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL;
+// ✅ MUST match Vercel env variable name
+const BACKEND_URL = process.env.REACT_APP_API_URL;
 
-// Safety check so you NEVER get "undefined" again
-if (!API_URL) {
-  console.error("❌ REACT_APP_API_URL is missing!");
+// Safety check
+if (!BACKEND_URL) {
+  console.error("❌ REACT_APP_API_URL is missing in environment variables");
 }
 
-// Generic request handler
-const request = async (endpoint, method = "GET", data = null) => {
-  const url = `${API_URL}${endpoint}`;
+// Build API base correctly
+const API_BASE = `${BACKEND_URL}/api`;
 
-  try {
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: data ? JSON.stringify(data) : null,
-    });
+const api = axios.create({
+  baseURL: API_BASE,
+  headers: { "Content-Type": "application/json" },
+});
 
-    const result = await res.json();
-
-    if (!res.ok) {
-      throw new Error(result.detail || "Request failed");
-    }
-
-    return result;
-  } catch (err) {
-    console.error("API Error:", err.message);
-    throw err;
+// 🔐 Attach token to every request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("everduty_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-};
+  return config;
+});
 
-// 🔐 REGISTER
-export const registerUser = (data) => {
-  return request("/api/auth/register", "POST", data);
-};
+// 🚫 Handle 401 responses
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem("everduty_token");
+      localStorage.removeItem("everduty_user");
+      window.location.href = "/";
+    }
+    return Promise.reject(err);
+  }
+);
 
-// 🔐 LOGIN
-export const loginUser = (data) => {
-  return request("/api/auth/login", "POST", data);
-};
+export default api;
