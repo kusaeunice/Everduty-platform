@@ -1,33 +1,44 @@
-import axios from 'axios';
+// src/lib/api.js
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API_BASE = `${BACKEND_URL}/api`;
+const API_URL = process.env.REACT_APP_API_URL;
 
-const api = axios.create({
-  baseURL: API_BASE,
-  headers: { 'Content-Type': 'application/json' }
-});
+// Safety check so you NEVER get "undefined" again
+if (!API_URL) {
+  console.error("❌ REACT_APP_API_URL is missing!");
+}
 
-// Attach token to every request
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('everduty_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// Generic request handler
+const request = async (endpoint, method = "GET", data = null) => {
+  const url = `${API_URL}${endpoint}`;
 
-// Handle 401 responses
-api.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem('everduty_token');
-      localStorage.removeItem('everduty_user');
-      window.location.href = '/';
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: data ? JSON.stringify(data) : null,
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.detail || "Request failed");
     }
-    return Promise.reject(err);
-  }
-);
 
-export default api;
+    return result;
+  } catch (err) {
+    console.error("API Error:", err.message);
+    throw err;
+  }
+};
+
+// 🔐 REGISTER
+export const registerUser = (data) => {
+  return request("/api/auth/register", "POST", data);
+};
+
+// 🔐 LOGIN
+export const loginUser = (data) => {
+  return request("/api/auth/login", "POST", data);
+};
