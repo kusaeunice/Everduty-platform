@@ -43,31 +43,84 @@ function FadeIn({ children, className = '', delay = 0 }) {
 
 function AuthDialog({ open, onOpenChange, defaultTab = 'login' }) {
   const { login, register } = useAuth();
+
   const [isLoading, setIsLoading] = useState(false);
+
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [regRole, setRegRole] = useState('worker');
   const [regPhone, setRegPhone] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    try { await login(loginEmail, loginPassword); toast.success('Welcome back!'); }
-    catch (err) { toast.error(err.response?.data?.detail || 'Login failed'); }
-    finally { setIsLoading(false); }
+
+    try {
+      await login(loginEmail, loginPassword);
+      toast.success('Welcome back!');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Login failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const passwordValid =
+    regPassword.length >= 8 &&
+    /[A-Z]/.test(regPassword) &&
+    /[a-z]/.test(regPassword) &&
+    /\d/.test(regPassword);
+
+  const passwordsMatch =
+    confirmPassword.length > 0 &&
+    regPassword === confirmPassword;
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    try { await register({ email: regEmail, password: regPassword, full_name: regName, role: regRole, phone: regPhone }); toast.success('Account created!'); }
-    catch (err) { toast.error(err.response?.data?.detail || 'Registration failed'); }
-    finally { setIsLoading(false); }
-  };
 
+    if (!passwordValid) {
+      toast.error(
+        'Password must contain at least 8 characters, one uppercase letter, one lowercase letter and one number.'
+      );
+      return;
+    }
+
+    if (!passwordsMatch) {
+      toast.error('Passwords do not match.');
+      return;
+    }
+
+    if (!acceptTerms) {
+      toast.error('Please accept the Terms & Privacy Policy.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await register({
+        email: regEmail,
+        password: regPassword,
+        full_name: regName,
+        role: regRole,
+        phone: regPhone,
+      });
+
+      toast.success('Account created!');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Registration failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[440px] p-0 overflow-hidden border-0 rounded-lg" data-testid="auth-dialog">
@@ -103,35 +156,187 @@ function AuthDialog({ open, onOpenChange, defaultTab = 'login' }) {
               </form>
             </TabsContent>
             <TabsContent value="register">
-              <form onSubmit={handleRegister} className="space-y-3">
-                <div>
-                  <Label className="text-xs font-bold tracking-wider uppercase text-slate-500">Full Name</Label>
-                  <Input value={regName} onChange={(e) => setRegName(e.target.value)} placeholder="John Smith" className="mt-1 h-10 rounded-md" data-testid="register-name-input" required />
-                </div>
-                <div>
-                  <Label className="text-xs font-bold tracking-wider uppercase text-slate-500">Email</Label>
-                  <Input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} placeholder="you@email.com" className="mt-1 h-10 rounded-md" data-testid="register-email-input" required />
-                </div>
-                <div>
-                  <Label className="text-xs font-bold tracking-wider uppercase text-slate-500">Password</Label>
-                  <Input type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} placeholder="Min 6 characters" className="mt-1 h-10 rounded-md" data-testid="register-password-input" required />
-                </div>
-                <div>
-                  <Label className="text-xs font-bold tracking-wider uppercase text-slate-500">Register As</Label>
-                  <Select value={regRole} onValueChange={setRegRole}>
-                    <SelectTrigger className="mt-1 h-10 rounded-md" data-testid="register-role-select"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="worker"><div className="flex items-center gap-2"><Users className="w-4 h-4" /> Worker / Freelancer</div></SelectItem>
-                      <SelectItem value="employer"><div className="flex items-center gap-2"><Briefcase className="w-4 h-4" /> Employer / University</div></SelectItem>
-                      <SelectItem value="agency"><div className="flex items-center gap-2"><Building className="w-4 h-4" /> Staffing Agency</div></SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button type="submit" disabled={isLoading} className="w-full h-11 bg-[#C5A059] text-white hover:bg-[#b8933f] rounded-md uppercase tracking-wider font-bold text-xs" data-testid="register-submit-btn">
-                  {isLoading ? <div className="gold-spinner mx-auto" /> : <>Create Account <ArrowRight className="ml-2 w-4 h-4" /></>}
-                </Button>
-              </form>
-            </TabsContent>
+  <form onSubmit={handleRegister} className="space-y-3">
+    <div>
+      <Label className="text-xs font-bold tracking-wider uppercase text-slate-500">
+        Full Name
+      </Label>
+      <Input
+        value={regName}
+        onChange={(e) => setRegName(e.target.value)}
+        placeholder="John Smith"
+        className="mt-1 h-10 rounded-md"
+        data-testid="register-name-input"
+        required
+      />
+    </div>
+
+    <div>
+      <Label className="text-xs font-bold tracking-wider uppercase text-slate-500">
+        Email
+      </Label>
+      <Input
+        type="email"
+        value={regEmail}
+        onChange={(e) => setRegEmail(e.target.value)}
+        placeholder="you@email.com"
+        className="mt-1 h-10 rounded-md"
+        data-testid="register-email-input"
+        required
+      />
+    </div>
+
+    <div>
+      <Label className="text-xs font-bold tracking-wider uppercase text-slate-500">
+        Password
+      </Label>
+
+      <Input
+        type={showPassword ? 'text' : 'password'}
+        value={regPassword}
+        onChange={(e) => setRegPassword(e.target.value)}
+        placeholder="Minimum 8 characters"
+        className="mt-1 h-10 rounded-md"
+        data-testid="register-password-input"
+        required
+      />
+
+      <button
+        type="button"
+        onClick={() => setShowPassword((current) => !current)}
+        className="mt-1 text-xs font-semibold text-[#C5A059]"
+      >
+        {showPassword ? 'Hide password' : 'Show password'}
+      </button>
+
+      <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
+        <span className={regPassword.length >= 8 ? 'text-green-600' : 'text-slate-400'}>
+          {regPassword.length >= 8 ? '✓' : '•'} 8 characters
+        </span>
+
+        <span className={/[A-Z]/.test(regPassword) ? 'text-green-600' : 'text-slate-400'}>
+          {/[A-Z]/.test(regPassword) ? '✓' : '•'} Uppercase
+        </span>
+
+        <span className={/[a-z]/.test(regPassword) ? 'text-green-600' : 'text-slate-400'}>
+          {/[a-z]/.test(regPassword) ? '✓' : '•'} Lowercase
+        </span>
+
+        <span className={/\d/.test(regPassword) ? 'text-green-600' : 'text-slate-400'}>
+          {/\d/.test(regPassword) ? '✓' : '•'} Number
+        </span>
+      </div>
+    </div>
+
+    <div>
+      <Label className="text-xs font-bold tracking-wider uppercase text-slate-500">
+        Confirm Password
+      </Label>
+
+      <Input
+        type={showConfirmPassword ? 'text' : 'password'}
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+        placeholder="Re-enter your password"
+        className="mt-1 h-10 rounded-md"
+        data-testid="register-confirm-password-input"
+        required
+      />
+
+      <button
+        type="button"
+        onClick={() => setShowConfirmPassword((current) => !current)}
+        className="mt-1 text-xs font-semibold text-[#C5A059]"
+      >
+        {showConfirmPassword ? 'Hide password' : 'Show password'}
+      </button>
+
+      {confirmPassword.length > 0 && (
+        <p
+          className={`mt-1 text-xs font-semibold ${
+            passwordsMatch ? 'text-green-600' : 'text-red-600'
+          }`}
+        >
+          {passwordsMatch
+            ? '✓ Passwords match'
+            : '✗ Passwords do not match'}
+        </p>
+      )}
+    </div>
+
+    <div>
+      <Label className="text-xs font-bold tracking-wider uppercase text-slate-500">
+        Register As
+      </Label>
+
+      <Select value={regRole} onValueChange={setRegRole}>
+        <SelectTrigger
+          className="mt-1 h-10 rounded-md"
+          data-testid="register-role-select"
+        >
+          <SelectValue />
+        </SelectTrigger>
+
+        <SelectContent>
+          <SelectItem value="worker">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Worker / Freelancer
+            </div>
+          </SelectItem>
+
+          <SelectItem value="employer">
+            <div className="flex items-center gap-2">
+              <Briefcase className="h-4 w-4" />
+              Employer / University
+            </div>
+          </SelectItem>
+
+          <SelectItem value="agency">
+            <div className="flex items-center gap-2">
+              <Building className="h-4 w-4" />
+              Staffing Agency
+            </div>
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+
+    <label className="flex cursor-pointer items-start gap-2 rounded-md bg-slate-50 p-3">
+      <input
+        type="checkbox"
+        checked={acceptTerms}
+        onChange={(e) => setAcceptTerms(e.target.checked)}
+        className="mt-0.5"
+      />
+
+      <span className="text-xs leading-5 text-slate-600">
+        I agree to the Terms of Service and Privacy Policy.
+      </span>
+    </label>
+
+    <Button
+      type="submit"
+      disabled={
+        isLoading ||
+        !passwordValid ||
+        !passwordsMatch ||
+        !acceptTerms
+      }
+      className="h-11 w-full rounded-md bg-[#C5A059] text-xs font-bold uppercase tracking-wider text-white hover:bg-[#b8933f] disabled:cursor-not-allowed disabled:opacity-50"
+      data-testid="register-submit-btn"
+    >
+      {isLoading ? (
+        <div className="gold-spinner mx-auto" />
+      ) : (
+        <>
+          Create Account
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </>
+      )}
+    </Button>
+  </form>
+  </TabsContent>
           </Tabs>
         </div>
       </DialogContent>
