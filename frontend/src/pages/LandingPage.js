@@ -44,6 +44,14 @@ function FadeIn({ children, className = '', delay = 0 }) {
 function AuthDialog({ open, onOpenChange, defaultTab = 'login' }) {
   const { login, register } = useAuth();
 
+  const [activeTab, setActiveTab] = useState(defaultTab);
+
+useEffect(() => {
+  if (open) {
+    setActiveTab(defaultTab);
+  }
+}, [open, defaultTab]);
+
   const [isLoading, setIsLoading] = useState(false);
 
   const [loginEmail, setLoginEmail] = useState('');
@@ -134,7 +142,11 @@ function AuthDialog({ open, onOpenChange, defaultTab = 'login' }) {
           </DialogHeader>
         </div>
         <div className="p-6">
-          <Tabs defaultValue={defaultTab} className="w-full">
+          <Tabs
+  value={activeTab}
+  onValueChange={setActiveTab}
+  className="w-full"
+>
             <TabsList className="grid w-full grid-cols-2 bg-slate-100 rounded-md mb-5">
               <TabsTrigger value="login" className="rounded-md font-['Oswald'] tracking-wider uppercase text-xs" data-testid="login-tab">Sign In</TabsTrigger>
               <TabsTrigger value="register" className="rounded-md font-['Oswald'] tracking-wider uppercase text-xs" data-testid="register-tab">Register</TabsTrigger>
@@ -444,12 +456,8 @@ export default function LandingPage() {
               <div className="flex flex-wrap items-center gap-2">
   
   <div className="flex items-center gap-2 flex-wrap">
-    
-  <span className="text-[#C5A059] text-xs font-semibold tracking-wide">
-    Global Workforce & Staffing Platform
-  </span>
 
-  <span className="px-2 py-1 rounded-full bg-[#C5A059] text-[#0F172A] text-[10px] font-bold uppercase tracking-wider">
+    <span className="px-2 py-1 rounded-full bg-[#C5A059] text-[#0F172A] text-[10px] font-bold uppercase tracking-wider">
     PRIVATE BETA
   </span>
 </div>
