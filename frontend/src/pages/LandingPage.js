@@ -130,7 +130,7 @@ function AuthDialog({ open, onOpenChange, defaultTab = 'login' }) {
               <div className="w-8 h-8 bg-[#C5A059] rounded flex items-center justify-center"><Shield className="w-4 h-4 text-white" /></div>
               <DialogTitle className="font-['Oswald'] text-xl text-white tracking-wider">EVERDUTY</DialogTitle>
             </div>
-            <p className="text-slate-400 text-xs">Global Multi-Industry Staffing Platform</p>
+            <p className="text-slate-400 text-xs">Global Workforce & Staffing Platform</p>
           </DialogHeader>
         </div>
         <div className="p-6">
@@ -152,8 +152,7 @@ function AuthDialog({ open, onOpenChange, defaultTab = 'login' }) {
                 <Button type="submit" disabled={isLoading} className="w-full h-11 bg-[#0F172A] text-white hover:bg-[#1e293b] rounded-md uppercase tracking-wider font-bold text-xs border-b-2 border-[#C5A059]" data-testid="login-submit-btn">
                   {isLoading ? <div className="gold-spinner mx-auto" /> : <>Sign In <ArrowRight className="ml-2 w-4 h-4" /></>}
                 </Button>
-                <p className="text-center text-[10px] text-slate-400 mt-2">Demo: admin@everduty.com / admin123</p>
-              </form>
+          </form>
             </TabsContent>
             <TabsContent value="register">
   <form onSubmit={handleRegister} className="space-y-3">
@@ -442,7 +441,23 @@ export default function LandingPage() {
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 bg-[#C5A059]/15 border border-[#C5A059]/30 rounded-full px-4 py-1.5 mb-6">
               <Zap className="w-3.5 h-3.5 text-[#C5A059]" />
-              <span className="text-[#C5A059] text-xs font-semibold tracking-wide">Global Staffing Platform</span>
+              <div className="flex flex-wrap items-center gap-2">
+  
+  <div className="flex items-center gap-2 flex-wrap">
+    
+  <span className="text-[#C5A059] text-xs font-semibold tracking-wide">
+    Global Workforce & Staffing Platform
+  </span>
+
+  <span className="px-2 py-1 rounded-full bg-[#C5A059] text-[#0F172A] text-[10px] font-bold uppercase tracking-wider">
+    PRIVATE BETA
+  </span>
+</div>
+
+  <span className="rounded-full border border-[#C5A059]/40 bg-[#C5A059]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#C5A059]">
+    Private Beta
+  </span>
+</div>
             </div>
             <h1 className="font-['Oswald'] text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1] mb-6" data-testid="hero-heading">
               The Future of<br />
@@ -834,7 +849,15 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-white/5 pt-6 flex flex-col md:flex-row justify-between items-center gap-3">
-            <p className="text-xs text-slate-500">&copy; 2026 EverDuty Flex Staffing Solutions. All rights reserved.</p>
+           <div className="text-xs text-slate-500 space-y-1">
+  <p>
+    &copy; 2026 EverDuty Flex Staffing Solutions Ltd. All rights reserved.
+  </p>
+
+  <p className="text-[11px] text-slate-400">
+    EVERDUTY™ is a trademark of EverDuty Flex Staffing Solutions Ltd.
+  </p>
+</div>
             <div className="flex items-center gap-4 text-xs text-slate-500">
               <span className="hover:text-[#C5A059] cursor-pointer transition-colors">Privacy Policy</span>
               <span className="hover:text-[#C5A059] cursor-pointer transition-colors">Terms of Service</span>
