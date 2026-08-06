@@ -461,10 +461,6 @@ export default function LandingPage() {
     PRIVATE BETA
   </span>
 </div>
-
-  <span className="rounded-full border border-[#C5A059]/40 bg-[#C5A059]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#C5A059]">
-    Private Beta
-  </span>
 </div>
             </div>
             <h1 className="font-['Oswald'] text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1] mb-6" data-testid="hero-heading">
@@ -843,19 +839,81 @@ export default function LandingPage() {
               </ul>
             </div>
             <div>
-              <p className="font-['Oswald'] text-sm font-semibold text-white tracking-wider uppercase mb-4">Contact</p>
-              <ul className="space-y-2 text-xs">
-                <li className="flex items-center gap-2"><Mail className="w-3.5 h-3.5 text-[#C5A059]" /> hello@everduty.org</li>
-                <li className="flex items-center gap-2"><Phone className="w-3.5 h-3.5 text-[#C5A059]" /> +44 (0) 20 7946 0958</li>
-                <li className="flex items-center gap-2"><Globe className="w-3.5 h-3.5 text-[#C5A059]" /> everduty.org</li>
-              </ul>
-              <div className="flex gap-2 mt-4">
-                <span className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center hover:bg-[#C5A059]/20 transition-colors cursor-pointer"><Heart className="w-3.5 h-3.5" /></span>
-                <span className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center hover:bg-[#C5A059]/20 transition-colors cursor-pointer"><Users className="w-3.5 h-3.5" /></span>
-                <span className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center hover:bg-[#C5A059]/20 transition-colors cursor-pointer"><Globe className="w-3.5 h-3.5" /></span>
-              </div>
-            </div>
-          </div>
+  <p className="font-['Oswald'] text-sm font-semibold text-white tracking-wider uppercase mb-4">
+    Contact
+  </p>
+
+  <ul className="space-y-2 text-xs">
+
+    <li>
+      <a
+        href="mailto:Talk2us@everduty.org"
+        className="flex items-center gap-2 hover:text-[#C5A059] transition-colors"
+      >
+        <Mail className="w-3.5 h-3.5 text-[#C5A059]" />
+        Talk2us@everduty.org
+      </a>
+    </li>
+
+    <li>
+      <a
+        href="mailto:info@everduty.org"
+        className="flex items-center gap-2 hover:text-[#C5A059] transition-colors"
+      >
+        <Mail className="w-3.5 h-3.5 text-[#C5A059]" />
+        info@everduty.org
+      </a>
+    </li>
+
+    <li>
+      <a
+        href="tel:+447917256676"
+        className="flex items-center gap-2 hover:text-[#C5A059] transition-colors"
+      >
+        <Phone className="w-3.5 h-3.5 text-[#C5A059]" />
+        07917 256676
+      </a>
+    </li>
+
+    <li>
+      <a
+        href="https://everduty.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 hover:text-[#C5A059] transition-colors"
+      >
+        <Globe className="w-3.5 h-3.5 text-[#C5A059]" />
+        www.everduty.org
+      </a>
+    </li>
+
+    <li className="flex items-center gap-2">
+      📍 Newcastle upon Tyne, United Kingdom
+    </li>
+
+  </ul>
+
+  <div className="flex gap-3 mt-5">
+
+    <a
+  href="https://www.facebook.com/share/1HCKUmNChK/"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="inline-flex items-center gap-2 bg-[#1877F2] hover:bg-[#166FE5] text-white px-4 py-2 rounded-lg transition-colors"
+>
+  <Facebook className="w-4 h-4" />
+  Follow EverDuty Flex Staffing Solutions
+</a>
+
+    <div className="text-[10px] text-slate-500 mt-3">
+  Follow us on Facebook for jobs, platform updates, career opportunities and company news.
+</div>
+
+  </div>
+  </div>
+  </div>
+
+
           <div className="border-t border-white/5 pt-6 flex flex-col md:flex-row justify-between items-center gap-3">
            <div className="text-xs text-slate-500 space-y-1">
   <p>
