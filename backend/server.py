@@ -491,19 +491,166 @@ def get_worker_my_shifts(user=Depends(get_current_user)):
 @api_router.post("/worker/shifts/{shift_id}/apply")
 def apply_for_shift(shift_id: str, user=Depends(get_current_user)):
     require_role(user, ["worker"])
-    shift = sb_first(sb.table("shifts").select("*").eq("id", shift_id).execute())
+
+    # Get shift
+    shift = sb_first(
+        sb.table("shifts")
+        .select("*")
+        .eq("id", shift_id)
+        .execute()
+    )
+
     if not shift:
         raise HTTPException(status_code=404, detail="Shift not found")
-    existing = sb_first(sb.table("shift_applications").select("id").eq("shift_id", shift_id).eq("worker_id", user["id"]).execute())
+
+    # Do not allow applications/bookings to unavailable shifts
+    shift_status = (shift.get("status") or "").lower()
+
+    if shift_status in ["filled", "closed", "cancelled"]:
+        raise HTTPException(
+            status_code=400,
+            detail="This shift is no longer available"
+        )
+
+    # Prevent duplicate application/booking
+    existing = sb_first(
+        sb.table("shift_applications")
+        .select("id,status")
+        .eq("shift_id", shift_id)
+        .eq("worker_id", user["id"])
+        .execute()
+    )
+
     if existing:
-        raise HTTPException(status_code=400, detail="Already applied")
+        raise HTTPException(
+            status_code=400,
+            detail="You have already applied for or booked this shift"
+        )
+
+    # Check capacity
+    positions = int(shift.get("positions") or 1)
+
+    accepted_count = sb_count(
+        "shift_applications",
+        shift_id=shift_id,
+        status="accepted"
+    )
+
+    if accepted_count >= positions:
+        sb.table("shifts").update({
+            "filled_positions": accepted_count,
+            "status": "filled"
+        }).eq("id", shift_id).execute()
+
+        raise HTTPException(
+            status_code=400,
+            detail="Sorry, this shift has already been filled"
+        )
+
+    # Check worker compliance
+    worker_profile = sb_first(
+        sb.table("worker_profiles")
+        .select("compliance_status")
+        .eq("user_id", user["id"])
+        .execute()
+    )
+
+    is_compliant = (
+        worker_profile is not None
+        and (worker_profile.get("compliance_status") or "").lower() == "approved"
+    )
+
+    # Check if this worker is one of this employer's favourites
+    favourite = sb_first(
+        sb.table("worker_favourites")
+        .select("id")
+        .eq("owner_user_id", shift["employer_id"])
+        .eq("worker_id", user["id"])
+        .execute()
+    )
+
+    is_favourite = favourite is not None
+    is_urgent = bool(shift.get("urgent"))
+
+    # EverDuty booking rules:
+    # Urgent + compliant = instant booking
+    # Normal + compliant favourite = instant booking
+    # Everyone else = employer approval required
+    instant_booking = is_compliant and (is_urgent or is_favourite)
+
+    application_status = "accepted" if instant_booking else "pending"
+
     app_id = str(uuid.uuid4())
+
     sb.table("shift_applications").insert({
-        "id": app_id, "shift_id": shift_id, "worker_id": user["id"],
-        "worker_name": user["full_name"], "employer_id": shift["employer_id"],
-        "status": "applied", "applied_at": datetime.now(timezone.utc).isoformat()
+        "id": app_id,
+        "shift_id": shift_id,
+        "worker_id": user["id"],
+        "worker_name": user["full_name"],
+        "employer_id": shift["employer_id"],
+        "status": application_status,
+        "applied_at": datetime.now(timezone.utc).isoformat()
     }).execute()
-    return {"message": "Application submitted", "application_id": app_id}
+
+    total_apps = sb_count(
+        "shift_applications",
+        shift_id=shift_id
+    )
+
+    # If instant-booked, update capacity immediately
+    if instant_booking:
+        new_accepted_count = sb_count(
+            "shift_applications",
+            shift_id=shift_id,
+            status="accepted"
+        )
+
+        new_shift_status = (
+            "filled"
+            if new_accepted_count >= positions
+            else "open"
+        )
+
+        sb.table("shifts").update({
+            "filled_positions": new_accepted_count,
+            "applicants_count": total_apps,
+            "status": new_shift_status
+        }).eq("id", shift_id).execute()
+
+        if is_urgent:
+            return {
+                "message": "Shift booked instantly",
+                "application_id": app_id,
+                "status": "accepted",
+                "booking_type": "urgent_instant_booking"
+            }
+
+        return {
+            "message": "Shift booked instantly because you are a favourite worker",
+            "application_id": app_id,
+            "status": "accepted",
+            "booking_type": "favourite_instant_booking"
+        }
+
+    # Normal application awaiting employer decision
+    sb.table("shifts").update({
+        "applicants_count": total_apps
+    }).eq("id", shift_id).execute()
+
+    if not is_compliant:
+        return {
+            "message": "Application submitted. Employer approval and compliance verification are required.",
+            "application_id": app_id,
+            "status": "pending",
+            "booking_type": "approval_required"
+        }
+
+    return {
+        "message": "Application submitted for employer approval",
+        "application_id": app_id,
+        "status": "pending",
+        "booking_type": "approval_required"
+    }
 
 @api_router.get("/worker/earnings")
 def get_worker_earnings(user=Depends(get_current_user)):
