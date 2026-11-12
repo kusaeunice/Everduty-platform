@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import {
   Shield, Users, Briefcase, ArrowRight, Clock, FileCheck, ChartBar,
   GraduationCap, Wrench, Globe, Building, Star, CheckCircle2,
-  Smartphone, Award, TrendingUp, MapPin, Menu, X, ChevronRight, Zap, Heart, Phone, Mail
+  Smartphone, Award, TrendingUp, MapPin, Menu, X, ChevronRight, Zap, Heart, Phone, Mail, Facebook
 } from 'lucide-react';
 
 const HERO_IMG = 'https://images.unsplash.com/photo-1758873268663-5a362616b5a7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MTN8MHwxfHNlYXJjaHwxfHxkaXZlcnNlJTIwdGVhbSUyMG9mZmljZSUyMG1vZGVybiUyMHdvcmtwbGFjZSUyMGNvbGxhYm9yYXRpb258ZW58MHx8fHwxNzczNTgwODM0fDA&ixlib=rb-4.1.0&q=85';
