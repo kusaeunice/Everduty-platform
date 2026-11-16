@@ -1,132 +1,97 @@
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Form, Query
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from dotenv import load_dotenv
+from starlette.middleware.cors import CORSMiddleware
+from supabase import create_client
+import os
+import logging
+import base64
+from pathlib import Path
+from pydantic import BaseModel
+from typing import List, Optional
+import uuid
+import jwt
+import bcrypt
+from datetime import datetime, timezone, timedelta
 
-    
-  
-    return {"id": job_id, "message": "Permanent job posted"}
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
 
-@api_router.get("/agency/permanent-jobs")
-def get_agency_jobs(user=Depends(get_current_user)):
-    require_role(user, ["agency"])
-    agency = sb_first(sb.table("agencies").select("id").eq("owner_id", user["id"]).execute())
-    if not agency:
-        return []
-    return sb.table("permanent_jobs").select("*").eq("agency_id", agency["id"]).order("created_at", desc=True).limit(200).execute().data
+# Keep MongoDB for backward compat but use Supabase as primary
+sb = create_client(os.environ['SUPABASE_URL'], os.environ['SUPABASE_SERVICE_KEY'])
 
-@api_router.get("/agency/workers")
-def get_agency_workers(user=Depends(get_current_user)):
-    require_role(user, ["agency"])
-    agency = sb_first(sb.table("agencies").select("id").eq("owner_id", user["id"]).execute())
-    if not agency:
-        return []
-    profiles = sb.table("worker_profiles").select("*").eq("agency_id", agency["id"]).execute().data
-    result = []
-    for p in profiles:
-        w = sb_first(sb.table("users").select("id,email,full_name,phone,country,status").eq("id", p["user_id"]).execute())
-        if w:
-            w["profile"] = p
-            result.append(w)
-    return result
+JWT_SECRET = os.environ.get('JWT_SECRET', 'everduty-secret-key-2024')
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRATION_HOURS = 24
+EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 
-@api_router.post("/agency/invite-worker")
-def invite_worker_to_agency(data: AgencyInviteWorker, user=Depends(get_current_user)):
-    require_role(user, ["agency"])
-    agency = sb_first(sb.table("agencies").select("id").eq("owner_id", user["id"]).execute())
-    if not agency:
-        raise HTTPException(status_code=400, detail="Register your agency first")
-    worker_user = sb_first(sb.table("users").select("id").eq("email", data.worker_email).eq("role", "worker").execute())
-    if not worker_user:
-        raise HTTPException(status_code=404, detail="Worker not found with that email")
-    profile = sb_first(sb.table("worker_profiles").select("id,agency_id").eq("user_id", worker_user["id"]).execute())
-    if profile and profile.get("agency_id") and profile["agency_id"] == agency["id"]:
-        raise HTTPException(status_code=400, detail="Worker already in your pool")
-    sb.table("worker_profiles").update({"agency_id": agency["id"]}).eq("user_id", worker_user["id"]).execute()
-    sb_inc("agencies", agency["id"], "worker_pool_count")
-    return {"message": f"Worker added to your pool"}
+app = FastAPI()
+api_router = APIRouter(prefix="/api")
+security = HTTPBearer(auto_error=False)
 
-@api_router.post("/agency/remove-worker/{worker_id}")
-def remove_worker_from_agency(worker_id: str, user=Depends(get_current_user)):
-    require_role(user, ["agency"])
-    agency = sb_first(sb.table("agencies").select("id").eq("owner_id", user["id"]).execute())
-    if not agency:
-        raise HTTPException(status_code=400, detail="No agency")
-    sb.table("worker_profiles").update({"agency_id": ""}).eq("user_id", worker_id).eq("agency_id", agency["id"]).execute()
-    return {"message": "Worker removed from pool"}
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-@api_router.get("/agency/applicants")
-def get_agency_applicants(user=Depends(get_current_user)):
-    require_role(user, ["agency"])
-    apps = sb.table("shift_applications").select("*").eq("employer_id", user["id"]).order("applied_at", desc=True).limit(200).execute().data
-    for a in apps:
-        a["worker"] = sb_first(sb.table("users").select("id,email,full_name,phone,country,status").eq("id", a["worker_id"]).execute())
-        a["shift"] = sb_first(sb.table("shifts").select("title,date,location,hourly_rate").eq("id", a["shift_id"]).execute())
-    return apps
+# ============ CONSTANTS ============
 
-@api_router.post("/agency/applications/{app_id}/{action}")
-def handle_agency_application(app_id: str, action: str, user=Depends(get_current_user)):
-    require_role(user, ["agency"])
-    if action not in ["accept", "reject"]:
-        raise HTTPException(status_code=400, detail="Invalid action")
-    status = "accepted" if action == "accept" else "rejected"
-    sb.table("shift_applications").update({"status": status}).eq("id", app_id).execute()
-    if action == "accept":
-        application = sb_first(sb.table("shift_applications").select("shift_id").eq("id", app_id).execute())
-        if application:
-            accepted = sb_count("shift_applications", shift_id=application["shift_id"], status="accepted")
-            shift = sb_first(sb.table("shifts").select("positions").eq("id", application["shift_id"]).execute())
-            if shift and accepted >= shift.get("positions", 1):
-                sb.table("shifts").update({"filled_positions": accepted, "status": "filled"}).eq("id", application["shift_id"]).execute()
-    return {"message": f"Application {status}"}
+INDUSTRIES = [
+    "Healthcare", "Social Care", "Hospitality", "Cleaning", "Retail",
+    "Transport & Logistics", "Warehousing", "Security", "Education Support",
+    "Office & Admin", "Farming & Seasonal", "Construction Support",
+    "Technology", "Finance & Banking", "Legal", "Manufacturing",
+    "Energy & Utilities", "Telecommunications", "Media & Entertainment"
+]
 
-@api_router.get("/agency/timesheets")
-def get_agency_timesheets(user=Depends(get_current_user)):
-    require_role(user, ["agency"])
-    return sb.table("timesheets").select("*").eq("employer_id", user["id"]).execute().data
+FREELANCER_CATEGORIES = [
+    "Nanny", "Babysitter", "Au Pair", "House Cleaner", "Apartment Cleaner",
+    "Housekeeper", "Laundry & Ironing Service",
+    "Personal Trainer", "Yoga Instructor", "Pilates Instructor", "Martial Arts Instructor",
+    "Swimming Instructor", "Dance Instructor", "Meditation Coach", "Nutritionist",
+    "Massage Therapist", "Physiotherapist", "Life Coach",
+    "Piano Instructor", "Guitar Instructor", "Violin Instructor", "Drum Instructor",
+    "Vocal Coach", "Music Theory Tutor", "Art Teacher", "Pottery Instructor",
+    "Photography Instructor",
+    "Academic Tutor", "Language Teacher", "STEM Tutor", "Test Prep Tutor",
+    "Special Needs Tutor", "Early Years Educator", "Homework Helper",
+    "University Admissions Consultant",
+    "Photographer", "Videographer", "Graphic Designer", "Web Developer",
+    "App Developer", "UI/UX Designer", "Social Media Manager",
+    "Content Writer", "Copywriter", "Translator", "Interpreter",
+    "Video Editor", "Animator", "Podcast Producer",
+    "Handyman", "Plumber", "Electrician", "Carpenter", "Painter & Decorator",
+    "Gardener", "Landscaper", "Locksmith", "HVAC Technician",
+    "Appliance Repair", "Tiler", "Plasterer", "Roofer", "Fencer",
+    "Window Cleaner", "Pressure Washer", "Pest Control",
+    "Mobile Mechanic", "Car Detailer", "Driving Instructor", "MOT Tester",
+    "Pet Sitter", "Dog Walker", "Pet Groomer", "Dog Trainer",
+    "Cat Sitter", "Horse Riding Instructor",
+    "Mobile Hair Stylist", "Mobile Barber", "Makeup Artist", "Nail Technician",
+    "Personal Stylist", "Personal Shopper", "Wardrobe Consultant",
+    "Tailor", "Seamstress", "Shoe Repair",
+    "DJ", "Event Planner", "Wedding Planner", "Florist",
+    "Balloon Artist", "Face Painter", "Magician", "Caricature Artist",
+    "Master of Ceremonies", "Party Chef",
+    "Personal Chef", "Caterer", "Baker", "Bartender",
+    "Meal Prep Service", "Cake Decorator",
+    "Virtual Assistant", "Bookkeeper", "Accountant", "Tax Advisor",
+    "Legal Consultant", "Business Coach", "IT Consultant",
+    "Data Analyst", "Project Manager", "HR Consultant",
+    "Marketing Consultant", "SEO Specialist", "PR Consultant",
+    "Private Nurse", "Private Carer", "Occupational Therapist",
+    "Speech Therapist", "Counsellor", "Psychotherapist",
+    "First Aid Trainer", "Health & Safety Consultant",
+    "Courier", "Delivery Driver", "Removal Service", "Man & Van",
+    "Furniture Assembly", "Errand Runner",
+    "Senior Companion", "Disability Support Worker", "Respite Carer",
+    "Live-in Carer",
+    "Interior Designer", "Feng Shui Consultant", "Organiser & Declutterer",
+    "Drone Operator", "3D Printing Service", "Engraver"
+]
 
-@api_router.get("/agency/shared-workers")
-def browse_shared_workers(industry: Optional[str] = None, user=Depends(get_current_user)):
-    require_role(user, ["agency"])
-    q = sb.table("worker_profiles").select("*").eq("compliance_status", "approved")
-    if industry:
-        q = q.contains("industries", [industry])
-    profiles = q.limit(200).execute().data
-    result = []
-    for p in profiles:
-        w = sb_first(sb.table("users").select("id,full_name,country,status").eq("id", p["user_id"]).execute())
-        if w:
-            w["profile"] = p
-            result.append(w)
-    return result
-
-# ============ ADMIN AGENCY MANAGEMENT ============
-
-@api_router.get("/admin/agencies")
-def admin_get_agencies(user=Depends(get_current_user)):
-    require_role(user, ["admin"])
-    agencies = sb.table("agencies").select("*").order("created_at", desc=True).limit(500).execute().data
-    for a in agencies:
-        owner = sb_first(sb.table("users").select("full_name,email").eq("id", a["owner_id"]).execute())
-        a["owner_name"] = owner["full_name"] if owner else "Unknown"
-        a["owner_email"] = owner["email"] if owner else ""
-    return agencies
-
-@api_router.post("/admin/agencies/{agency_id}/approve")
-def admin_approve_agency(agency_id: str, user=Depends(get_current_user)):
-    require_role(user, ["admin"])
-    sb.table("agencies").update({"status": "active"}).eq("id", agency_id).execute()
-    return {"message": "Agency approved"}
-
-@api_router.post("/admin/agencies/{agency_id}/suspend")
-def admin_suspend_agency(agency_id: str, user=Depends(get_current_user)):
-    require_role(user, ["admin"])
-    sb.table("agencies").update({"status": "suspended"}).eq("id", agency_id).execute()
-    return {"message": "Agency suspended"}
-
-@api_router.post("/admin/agencies/{agency_id}/commission")
-def admin_set_commission(agency_id: str, rate: float = Query(...), user=Depends(get_current_user)):
-    require_role(user, ["admin"])
-    sb.table("agencies").update({"commission_rate": rate}).eq("id", agency_id).execute()
-    return {"message": f"Commission rate set to {rate}%"}
-
-# ============ APP SETUP ============
-
-app.include_router(api_router)
+COUNTRIES = [
+    {"code": "GB", "name": "United Kingdom", "currency": "GBP", "symbol": "£"},
+    {"code": "US", "name": "United States", "currency": "USD", "symbol": "$"},
+    {"code": "CA", "name": "Canada", "currency": "CAD", "symbol": "C$"},
+    {"code": "AU", "name": "Australia", "currency": "AUD", "symbol": "A$"},
+    {"code": "DE", "name": "Germany", "currency": "EUR", "symbol": "€"},
 
