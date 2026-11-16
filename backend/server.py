@@ -341,6 +341,10 @@ def require_role(user: dict, roles: list):
 
 @api_router.post("/auth/register")
 def register(data: UserRegister):
+
+if data.role not in ("worker", "employer", "agency"):
+raise HTTPException(status_code=400, detail="Invalid registration role
+        
     existing = sb_first(sb.table("users").select("id").eq("email", data.email).execute())
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
